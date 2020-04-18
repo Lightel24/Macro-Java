@@ -19,21 +19,20 @@ import gui.UpdateGuiObserver;
 
 public class Main implements UpdateGuiObserver{
 	
+	public final static String SEMVER = "1.0.0";
+	
 	private MacroGui gui;
 	private UpdateGui update;
 	private boolean cancelFlag = false;
 
 	public Main() {
 		checkVersion();
-		gui = new MacroGui();
-		gui.setVisible(true);
 	}
 	
 	
 	private void checkVersion() {	//On peut se permettre de bloquer le main.
 		update = new UpdateGui();
 		update.setVisible(true);
-		
 		update.addWindowListener(new WindowListener() {
 			@Override
 			public void windowActivated(WindowEvent arg0) {}
@@ -60,8 +59,7 @@ public class Main implements UpdateGuiObserver{
 		up.setVersionCheckMethod(GitUpdater.DIFFERENCE_CHECK_TAGNAME);
 		
 		try {
-			up.isUpToDate("1.0.0");
-			if(up.isUpToDate()==GitUpdater.IS_NOT_UP_TO_DATE) {
+			if(up.isUpToDate(SEMVER)==GitUpdater.IS_NOT_UP_TO_DATE) {
 				update.setEnTete("Mise à jour en cours...");
 				update.changeSkip(new ActionListener() {
 					@Override
@@ -72,6 +70,7 @@ public class Main implements UpdateGuiObserver{
 			}
 		} catch (VersionCheckException e) {
 			e.printStackTrace();
+			update.dispose();
 		}
 	}
 
@@ -83,6 +82,7 @@ public class Main implements UpdateGuiObserver{
 
 	@Override
 	public void skip() {	//Attention peut bloquer non thread safe
-		
+		update.dispose();
+		cancelFlag=true;
 	}
 }

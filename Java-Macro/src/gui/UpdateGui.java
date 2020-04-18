@@ -55,6 +55,8 @@ public class UpdateGui extends JFrame{
 		this.getContentPane().add(Action, BorderLayout.SOUTH);
 		
 		btnSkip = new JButton("Skip");
+		btnSkip.setEnabled(false);
+		btnSkip.setToolTipText("Pas encore possible");
 		btnSkip.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				dispose();
@@ -75,18 +77,7 @@ public class UpdateGui extends JFrame{
 		);
 		Action.setLayout(gl_Action);
 	}
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					UpdateGui frame = new UpdateGui();
-					frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	
 	public void setEnTete(String string) {
 		SwingUtilities.invokeLater(new Runnable() {
 		      public void run() {
@@ -95,12 +86,12 @@ public class UpdateGui extends JFrame{
 		    });
 	}
 	public void changeSkip(ActionListener action) {
-		SwingUtilities.invokeLater(new Runnable() {
-		      public void run() {
-		    	btnSkip = new JButton("Arrière-plan");
-				btnSkip.addActionListener(action);
-		      }
-		    });
+	    	btnSkip.setText("Arrière-plan");
+	    	btnSkip.setToolTipText("Arrière-plan");
+	    	btnSkip.setSize(btnSkip.getWidth()*2, btnSkip.getHeight());
+	    	btnSkip.setEnabled(true);
+			btnSkip.addActionListener(action);
+			btnSkip.revalidate();
 		
 	}
 }
