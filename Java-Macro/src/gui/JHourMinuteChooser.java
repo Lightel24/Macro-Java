@@ -27,7 +27,8 @@ package gui;
 	import java.awt.FlowLayout;
 	import java.awt.Font;
 	import java.text.DecimalFormat;
-	import java.util.Date;
+import java.util.Calendar;
+import java.util.Date;
 	import java.util.concurrent.Executors;
 	import java.util.concurrent.ScheduledExecutorService;
 	import java.util.concurrent.TimeUnit;
@@ -39,7 +40,7 @@ package gui;
 	 */
 	public final class JHourMinuteChooser extends javax.swing.JPanel implements Runnable {
 
-	    private Date currentTime;
+	    private Calendar currentTime;
 	    private static final Logger LOGGER = Logger.getLogger(JHourMinuteChooser.class.getName());
 	    // Variables declaration - do not modify//GEN-BEGIN:variables
 	    private JCheckBox currentTimeChk;
@@ -57,9 +58,9 @@ package gui;
 	    public JHourMinuteChooser(int hour, int minute) {
 	        setName("JHourMinuteChooser");
 	        initComponents();
-	        currentTime = new Date();
-	        currentTime.setHours(hour);
-	        currentTime.setMinutes(minute);
+	        currentTime = Calendar.getInstance();
+	        currentTime.set(Calendar.HOUR, hour);
+	        currentTime.set(Calendar.MINUTE, minute);
 	        updateCurrentTimeInGUI();
 	        
 	        startTimerThread();
@@ -89,30 +90,29 @@ package gui;
 	    }
 
 	    public void setCurrentTime() {
-	        currentTime = new Date();
+	        currentTime = Calendar.getInstance();
 	        updateCurrentTimeInGUI();
 	    }
 
 	    private void updateCurrentTimeInGUI() {
 	        LOGGER.finest(currentTime.toString());
-	        if (currentTime.getHours() >= 0 && currentTime.getHours() < 12) {
-	            if (currentTime.getHours() == 0) {
+	        if (currentTime.get(Calendar.HOUR) >= 0 && currentTime.get(Calendar.HOUR) < 12) {
+	            if (currentTime.get(Calendar.HOUR) == 0) {
 	                hourSpin.setValue(12);
 	            } else {
-	                hourSpin.setValue(currentTime.getHours());
+	                hourSpin.setValue(currentTime.get(Calendar.HOUR));
 	            }
 	            meridianSpin.setValue("AM");
-	        } else if (currentTime.getHours() >= 12 && currentTime.getHours() <= 23) {
-	            if (currentTime.getHours() == 12) {
+	        } else if (currentTime.get(Calendar.HOUR) >= 12 && currentTime.get(Calendar.HOUR) <= 23) {
+	            if (currentTime.get(Calendar.HOUR) == 12) {
 	                hourSpin.setValue(12);
 	            } else {
-	                hourSpin.setValue(currentTime.getHours() - 12);
+	                hourSpin.setValue(currentTime.get(Calendar.HOUR) - 12);
 	            }
 	            meridianSpin.setValue("PM");
 	        }
 
-	        // System.out.println("minutes"+currentTime.getMinutes());
-	        minuteSpin.setValue(numberFormat(currentTime.getMinutes(), "##"));
+	        minuteSpin.setValue(currentTime.get(Calendar.MINUTE));
 	    }
 
 	    public static String numberFormat(long src, String fmt) {//Format : ###.####        
@@ -121,11 +121,17 @@ package gui;
 	    }
 
 	    public int getHour() {
-	        return (int) hourSpin.getValue();
+	    	try {
+	    		hourSpin.commitEdit();
+			} catch ( java.text.ParseException e ) {}
+	        return (Integer) hourSpin.getValue();
 	    }
 
 	    public int getMinute() {
-	        return (int) minuteSpin.getValue();
+	    	try {
+	    		minuteSpin.commitEdit();
+			} catch ( java.text.ParseException e ) {}
+	        return (Integer) minuteSpin.getValue();
 	    }
 
 	    public String getHorario() {
@@ -152,7 +158,7 @@ package gui;
 	        add(hourSpin);
 
 	        minuteSpin.setFont(new Font("Tahoma", 1, 11)); // NOI18N
-	        minuteSpin.setModel(new SpinnerListModel(new String[] {"00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59"}));
+	        minuteSpin.setModel(new SpinnerNumberModel(1, 0, 59, 1));
 	        add(minuteSpin);
 
 	        meridianSpin.setFont(new Font("Tahoma", 1, 11)); // NOI18N
@@ -197,7 +203,7 @@ package gui;
 	    }
 
 	    public Date getCurrentTime() {
-	        return new Date(currentTime.getTime());
+	        return currentTime.getTime();
 	    }
 	}
 
