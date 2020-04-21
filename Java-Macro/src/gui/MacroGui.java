@@ -22,6 +22,8 @@ import java.awt.Font;
 import java.awt.Color;
 import javax.swing.border.LineBorder;
 
+import core.Action;
+import core.Macro;
 import core.Manager;
 import core.ManagerObserver;
 import fr.lightel24.gitupdater.GitUpdater;
@@ -32,12 +34,15 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+
 import java.awt.Rectangle;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.border.BevelBorder;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.Stack;
 import java.awt.event.ActionEvent;
@@ -47,29 +52,94 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.JSlider;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
+import javax.swing.JSpinner;
+import javax.swing.JMenuItem;
+import javax.swing.JTextField;
+import javax.swing.JSeparator;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.JProgressBar;
+import javax.swing.JTree;
 
 public class MacroGui extends JFrame implements ManagerObserver{
 
 	private JPanel contentPane;
+	private JPanel Liste = new JPanel();
+	private DefaultListModel<String> listModel = new DefaultListModel<String>();
+	private JList list = new JList(listModel);
+	private JLabel lblLogOp = new JLabel("Log : ");
+	
+	
+	private Logger logger = LoggerFactory.getLogger(MacroGui.class);
 	private Manager manager;
 	private Stack<LogMessage> logStack = new Stack<LogMessage>();
 	private Thread logStackThread;
-	private JLabel lblLogOp = new JLabel("Log : ");
-	private Logger logger = LoggerFactory.getLogger(MacroGui.class);
 	protected boolean running=false;
+	private String[] macroNames;
 	
 	public static void main(String[] args) {
-		new MacroGui().setVisible(true);
+		new MacroGui(new Manager()).setVisible(true);
 	}
 	
 	/**
 	 * Create the frame.
+	 * @param manager2 
 	 */
-	public MacroGui() {
+	public MacroGui(Manager manager2) {
 		setTitle("Macros");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
-		setBounds(100, 100, 362, 460);
+		setBounds(100, 100, 442, 547);
+		
+		JMenuBar menuBar = new JMenuBar();
+		setJMenuBar(menuBar);
+		
+		JMenu mnOptions = new JMenu("Options");
+		menuBar.add(mnOptions);
+		
+		JPanel panel_5 = new JPanel();
+		mnOptions.add(panel_5);
+		
+		JLabel lblFrquenceDenregistrementsouris = new JLabel("Fr\u00E9quence d'enregistrement (souris)");
+		panel_5.add(lblFrquenceDenregistrementsouris);
+		
+		JSlider slider = new JSlider();
+		slider.setMinorTickSpacing(1);
+		slider.setSnapToTicks(true);
+		slider.setMaximum(500);
+		slider.setMinimum(1);
+		mnOptions.add(slider);
+		
+		JPanel panel_4 = new JPanel();
+		mnOptions.add(panel_4);
+		panel_4.setLayout(new BoxLayout(panel_4, BoxLayout.X_AXIS));
+		
+		JLabel label = new JLabel("1");
+		panel_4.add(label);
+		
+		Component horizontalStrut = Box.createHorizontalStrut(200);
+		panel_4.add(horizontalStrut);
+		
+		JLabel label_1 = new JLabel("500");
+		panel_4.add(label_1);
+		
+		JSeparator separator = new JSeparator();
+		mnOptions.add(separator);
+		
+		JMenuItem mntmBenchmark = new JMenuItem("Benchmark");
+		mntmBenchmark.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				int rep = JOptionPane.showConfirmDialog(MacroGui.this, "Le benchmark va trouver les paramètres optimaux pour votre configuration\nIl vous avertira de tout problème éventuel, vous devrez bouger votre souris et taper sur votre clavier\nLes actions seront ensuite repetées\nLe benchmark durera 10 secondes", "Message", JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
+				if(rep == JOptionPane.YES_OPTION) {
+					manager.benchmark();
+				}
+			}
+		});
+		mnOptions.add(mntmBenchmark);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
@@ -92,7 +162,7 @@ public class MacroGui extends JFrame implements ManagerObserver{
 					.addComponent(lblPropiete)
 					.addGap(30)
 					.addComponent(lblNewLabel)
-					.addGap(181))
+					.addGap(185))
 		);
 		gl_proprietes.setVerticalGroup(
 			gl_proprietes.createParallelGroup(Alignment.LEADING)
@@ -100,7 +170,7 @@ public class MacroGui extends JFrame implements ManagerObserver{
 					.addGroup(gl_proprietes.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblPropiete, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addComponent(lblNewLabel))
-					.addGap(16))
+					.addGap(22))
 		);
 		proprietes.setLayout(gl_proprietes);
 		
@@ -112,15 +182,18 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		splitPane.setLeftComponent(panel);
 		panel.setLayout(new BorderLayout(0, 0));
 		
-		JList list = new JList();
 		list.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent arg0) {
-				
+				//On récupère la liste des actions de la macro selectionnée
+				refreshActionList();	//On met à jour l'affichage
 			}
 		});
+		
+		JScrollPane scrollPane_1 = new JScrollPane();
+		panel.add(scrollPane_1, BorderLayout.CENTER);
 		list.setBackground(Color.GRAY);
 		list.setBorder(new LineBorder(new Color(0, 0, 0)));
-		panel.add(list);
+		scrollPane_1.setViewportView(list);
 		
 		JLabel lblListeMacros = new JLabel("Liste macros");
 		lblListeMacros.setForeground(Color.WHITE);
@@ -137,12 +210,29 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		panel_2.setLayout(new GridLayout(0, 2, 0, 0));
 		
 		JButton button_1 = new JButton("-");
+		button_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				manager.stopRecording();
+			}
+		});
 		button_1.setFont(new Font("Tahoma", Font.PLAIN, 13));
 		button_1.setForeground(Color.WHITE);
 		button_1.setBackground(Color.LIGHT_GRAY);
 		panel_2.add(button_1);
 		
 		JButton button = new JButton("+");
+		button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				String rep = JOptionPane.showInputDialog(MacroGui.this, "Entrez le nom de la macro", "Entrez un nom", JOptionPane.OK_CANCEL_OPTION);
+				if(!rep.contentEquals("null")) {
+					if(!listModel.contains(rep)) {
+						listModel.addElement(rep);
+					}else {
+						JOptionPane.showConfirmDialog(MacroGui.this, "Une macro du même nom existe deja", "Erreur", JOptionPane.OK_OPTION);
+					}
+				}
+			}
+		});
 		button.setForeground(Color.WHITE);
 		button.setBackground(Color.LIGHT_GRAY);
 		panel_2.add(button);
@@ -150,8 +240,10 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		JButton btnEnregistrer = new JButton("\u2022");
 		btnEnregistrer.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				manager.loadFromFile(new File("blabla"));
-				
+				String selectedMacro = (String) list.getSelectedValue();
+				if(selectedMacro != null) {
+					manager.startRecording(selectedMacro);
+				}
 			}
 		});
 		btnEnregistrer.setForeground(Color.WHITE);
@@ -162,7 +254,6 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		splitPane.setRightComponent(panel_1);
 		panel_1.setLayout(new BorderLayout(0, 0));
 		
-		JPanel Liste = new JPanel();
 		Liste.setBorder(new EmptyBorder(5, 5, 5, 5));
 		Liste.setBackground(Color.GRAY);
 		Liste.setAutoscrolls(true);
@@ -171,14 +262,6 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		scrollPane.setViewportView(Liste);
 		Liste.setLayout(new BoxLayout(Liste, BoxLayout.Y_AXIS));
 		
-		Item item1 = new Item(0, "Action", "1");
-		Liste.add(item1);
-		
-		Component verticalStrut_1 = Box.createVerticalStrut(5);
-		Liste.add(verticalStrut_1);
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		panel_1.add(scrollPane, BorderLayout.CENTER);
-		splitPane.setDividerLocation(100);
 		
 		JPanel panel_3 = new JPanel();
 		panel_3.setBackground(Color.GRAY);
@@ -191,15 +274,24 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		
 		running = true;
 		startLogMessageService();
-		manager = new Manager();
-		manager.setObserver(this);
+		manager = manager2;
 	}
 	
 	/*
 	 * Reforme le visuel des actions (les JPanels) à partir de la linkedList de la macro selectionnée
 	 * */
 	public void refreshActionList() {
-		
+		Liste.removeAll();
+		String d = (String) list.getSelectedValue();
+		Macro mac = manager.getMacroByName((String) list.getSelectedValue()); 
+		if(mac!=null) {
+			ArrayList<Action> actionlist = mac.getListe();
+			for(int i =0; i<actionlist.size();i++) {
+				Action cu = actionlist.get(i);
+				Liste.add(new Item(i, cu.getType(), ""+ i));
+			}
+			Liste.revalidate();
+		}
 	}
 	
 	public void shutdown() {
@@ -221,7 +313,7 @@ public class MacroGui extends JFrame implements ManagerObserver{
 	 * */
 	public void startLogMessageService() {
 		if(logStackThread== null || !logStackThread.isAlive()) {
-			logStackThread = new LogMessageThread("IO-Thread");
+			logStackThread = new LogMessageThread("LogMessage-Thread");
 			logStackThread.start();
 		}else {
 			logger.warn("LogMessageService est deja lancé!");
@@ -237,7 +329,7 @@ public class MacroGui extends JFrame implements ManagerObserver{
 			super(string);
 		}
 		@Override
-		public void run() {
+		public void run() {//TODO
 			while(running) {
 				if(current == null) {
 					try {
@@ -293,4 +385,9 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		pushLogMessage(logMessage);
 	}
 
+	@Override
+	public void macroListUpddated() {
+		macroNames = manager.getMacroNames();
+		refreshActionList();
+	}
 }

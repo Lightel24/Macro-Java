@@ -6,8 +6,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 
 import core.Macro;
+import core.Manager;
 import core.RecordService;
 import fr.lightel24.gitupdater.GitUpdater;
 import fr.lightel24.gitupdater.UpdateCallback;
@@ -23,6 +25,7 @@ public class Main implements UpdateGuiObserver{
 	
 	private MacroGui gui;
 	private UpdateGui update;
+	private Manager manager;
 	private boolean cancelFlag = false;
 
 	public Main() {
@@ -38,7 +41,10 @@ public class Main implements UpdateGuiObserver{
 			public void windowActivated(WindowEvent arg0) {}
 			@Override
 			public void windowClosed(WindowEvent arg0) {
-				gui = new MacroGui();
+				manager = new Manager();
+				gui = new MacroGui(manager);
+				manager.setObserver(gui);
+				manager.loadFromFile(new File("data/data.xml"), true);
 				gui.setVisible(true);
 			}
 			@Override

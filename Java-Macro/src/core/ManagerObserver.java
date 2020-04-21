@@ -8,4 +8,6 @@ public interface ManagerObserver {
 
 	void log(LogMessage logMessage);
 
+	void macroListUpddated();
+
 }

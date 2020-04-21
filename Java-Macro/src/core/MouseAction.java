@@ -4,15 +4,15 @@ import java.awt.Point;
 
 public class MouseAction extends Action {
 	
-	public static final int LEFT_MOUSE_PRESSED = 0;
-	public static final int LEFT_MOUSE_RELEASED = 1;
-	public static final int RIGHT_MOUSE_PRESSED = 3;
-	public static final int RIGHT_MOUSE_RELEASED = 4;
-	
-	private int type;
+	public static final String LEFT_MOUSE_PRESSED = "LEFT_MOUSE_PRESSED";
+	public static final String LEFT_MOUSE_RELEASED = "LEFT_MOUSE_RELEASED";
+	public static final String RIGHT_MOUSE_PRESSED = "RIGHT_MOUSE_PRESSED";
+	public static final String RIGHT_MOUSE_RELEASED = "RIGHT_MOUSE_RELEASED";
+	public static final String MOUSE_MOVED = "MOUSE_MOVED";
+
 	private Point loc;
 	
-	public MouseAction(long timestamp,int type,Point loc) {
+	public MouseAction(long timestamp,String type,Point loc) {
 		this.timestamp = timestamp;
 		this.type=type;
 		this.loc=loc;
@@ -31,18 +31,12 @@ public class MouseAction extends Action {
 	public void setLocation(Point loc) {
 		this.loc = loc;
 	}
-
-	/**
-	 * @return the type
+	
+	/*
+	 * @return a string representation of this object
 	 */
-	public int getType() {
-		return type;
+	@Override
+	protected String getInfoAsString() {
+		return "\"loc=\"\""+loc+"\"";
 	}
-
-	/**
-	 * @param type the type to set
-	 */
-	public void setType(int type) {
-		this.type = type;
-	}	
 }

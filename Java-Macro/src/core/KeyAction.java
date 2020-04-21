@@ -2,13 +2,12 @@ package core;
 
 public class KeyAction extends Action {
 	
-	public static final int KEY_PRESSED = 0;
-	public static final int KEY_RELEASED = 1;
+	public static final String KEY_PRESSED = "KEY_PRESSED";
+	public static final String KEY_RELEASED = "KEY_RELEASED";
 	
-	private int type;
 	private int key;
 	
-	public KeyAction(long timestamp,int type,int key) {
+	public KeyAction(long timestamp,String type,int key) {
 		this.key = key;
 		this.timestamp = timestamp;
 		this.type = type;
@@ -28,17 +27,8 @@ public class KeyAction extends Action {
 		this.key = key;
 	}
 
-	/**
-	 * @return the type
-	 */
-	public int getType() {
-		return type;
-	}
-
-	/**
-	 * @param type the type to set
-	 */
-	public void setType(int type) {
-		this.type = type;
+	@Override
+	protected String getInfoAsString() {
+		return "\"key=\"\""+key+"\"";
 	}	
 }
