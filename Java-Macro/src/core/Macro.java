@@ -6,11 +6,7 @@ import java.util.LinkedList;
 public class Macro {
 	String name;
 	ArrayList<Action> liste = new ArrayList<Action>();
-	
-	public Macro() {
-		
-	}
-	
+
 	public Macro(ArrayList<Action> liste, String name) {
 		this.liste = liste;
 		this.name=name;

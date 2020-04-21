@@ -58,6 +58,7 @@ public class Manager implements RecordServiceObserver{
 						observer.log(new LogMessage("Chargement et traitement des données...",5));
 						macroMap = fileService.loadnParse(file);
 						observer.log(new LogMessage("Chargement et traitement des données terminé.",5));
+						observer.macroListUpddated();
 					} catch (InvalidDataFile e) {
 						observer.log(new LogMessage("",1));
 						observer.log(new LogMessage(e.getMessage(),-1));

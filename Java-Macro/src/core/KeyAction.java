@@ -29,6 +29,6 @@ public class KeyAction extends Action {
 
 	@Override
 	protected String getInfoAsString() {
-		return "\"key=\"\""+key+"\"";
+		return "\"key\"=\""+key+"\"";
 	}	
 }

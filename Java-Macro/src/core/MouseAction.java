@@ -37,6 +37,6 @@ public class MouseAction extends Action {
 	 */
 	@Override
 	protected String getInfoAsString() {
-		return "\"loc=\"\""+loc+"\"";
+		return "\"loc\"=\""+loc.x+","+loc.y+"\"";
 	}
 }
