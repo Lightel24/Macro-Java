@@ -72,6 +72,7 @@ public class RecordService extends Service implements  NativeKeyListener, Native
 	}
 	
 	public void stopRecording() {
+		if(isRunning) {
 			observer.receiveRecordResult(enregistrement);
 			reset();
 			try {
@@ -83,6 +84,7 @@ public class RecordService extends Service implements  NativeKeyListener, Native
 			} catch (NativeHookException e) {
 				e.printStackTrace();
 			}
+		}
 	}
 
 	

@@ -43,7 +43,6 @@ public class Main implements UpdateGuiObserver{
 			public void windowClosed(WindowEvent arg0) {
 				manager = new Manager();
 				gui = new MacroGui(manager);
-				manager.setObserver(gui);
 				manager.loadFromFile(new File("data/data.xml"), true);
 				gui.setVisible(true);
 			}

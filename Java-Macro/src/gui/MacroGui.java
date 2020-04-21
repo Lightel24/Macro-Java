@@ -261,7 +261,7 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setViewportView(Liste);
 		Liste.setLayout(new BoxLayout(Liste, BoxLayout.Y_AXIS));
-		
+		panel_1.add(scrollPane);
 		
 		JPanel panel_3 = new JPanel();
 		panel_3.setBackground(Color.GRAY);
@@ -275,6 +275,7 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		running = true;
 		startLogMessageService();
 		manager = manager2;
+		manager.setObserver(this);
 	}
 	
 	/*
