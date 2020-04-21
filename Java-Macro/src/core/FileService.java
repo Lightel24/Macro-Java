@@ -1,5 +1,6 @@
 package core;
 
+import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -73,8 +74,10 @@ public class FileService {
 			Node t = macrosNode.item(i);
 			if(t instanceof Element) {
 				if(t.getNodeName()=="Macro") {	//On traite les noeuds Macro
-					Macro macro = new Macro();
+					Macro macro;
 					
+					NamedNodeMap att1 = t.getAttributes();
+					String nom = att1.getNamedItem("name").getNodeValue();	
 																			//Maintenant on traite les actions.
 					NodeList actionNodes = t.getChildNodes();
 					ArrayList<Action> actionsList = new ArrayList<Action>();
@@ -82,35 +85,56 @@ public class FileService {
 					for(int k =0;k<macrosNode.getLength();k++) {
 						Node actionNode = actionNodes.item(k);
 						if(actionNode instanceof Element) {
+							
 							if(actionNode.getNodeName()=="Action") {	//On récupère les infos de l'action.
 								String type;
 								NamedNodeMap att = actionNode.getAttributes();
 								type = att.getNamedItem("type").getNodeValue();	
 								
-								switch(type){
-								case"KEY":
-									break;
-								case"MOUSE":
-									break;
-								
-								default:
+								if(type.contains("KEY")) { //Donnees du format: "type"="KEY_PRESSED"	"timestamp"="230"		"key"="130"
+									String data = actionNode.getTextContent();
+									long timestamp = Long.parseLong(getValue("timestamp",data));
+									type = getValue("type",data);
+									int key = Integer.parseInt(getValue("key",data));
+									
+									actionsList.add(new KeyAction(timestamp, type, key));
+								}else if(type.contains("MOUSE")) {	//Donnees du format: "type"="MOUSE_MOVED"	"timestamp"="230"		"loc"="220,150"
+									String data = actionNode.getTextContent();
+									long timestamp = Long.parseLong(getValue("timestamp",data));
+									type = getValue("type",data);
+									String[] locVal = getValue("loc",data).split(",");
+									
+									actionsList.add(new MouseAction(timestamp, type, new Point(Integer.parseInt(locVal[0]),Integer.parseInt(locVal[1]))));
+								}else {
 									System.err.println("Action inconnue: " + type);
-									break;
 								}
-								
-								
-								
-
 							}else {
 								System.err.println("Noeud inconnu: " + actionNode.getNodeName() +"	ignoré");
 							}
+							
 						}
 					}
-					
+					if(actionsList.size()>0) {
+						 macro = new Macro(actionsList, nom);
+						 macros.put(nom, macro);
+					}
 				}
 				
 			}
 		}
+	}
+	
+	/*
+	 * extract a attribute value by its name, return null if not found
+	 * */
+	private String getValue(String attrib, String data) {
+		int start = data.indexOf("\""+attrib+"\"") + attrib.length()+2;
+		String value = null;
+		if(start-attrib.length()-2>=0) {
+			value = data.substring(data.indexOf('\"',start)+1,data.indexOf('\"',start+2));
+			System.out.println(value);
+		}
+		return value;
 	}
 
 	/*

@@ -28,11 +28,11 @@ public class Manager implements RecordServiceObserver{
 	
 	public void startRecording(String macroName) {
 		try {
-			observer.log(new LogMessage("Début de l'enregistrement.",-1, LogMessage.LOG));
+			observer.log(new LogMessage("DÃ©but de l'enregistrement.",-1, LogMessage.LOG));
 			recordService.startRecording();
 			this.macroName = macroName;
 		} catch (ObserverNotSetException e) {
-			observer.log(new LogMessage("L'opération a échoué veuillez réessayer.",5, LogMessage.ERREUR));
+			observer.log(new LogMessage("L'opÃ©ration a Ã©chouÃ© veuillez rÃ©essayer.",5, LogMessage.ERREUR));
 			recordService.setObserver(this);
 			e.printStackTrace();
 		} catch (ServiceNotReadyException e) {
@@ -56,9 +56,11 @@ public class Manager implements RecordServiceObserver{
 				@Override
 				public void run() {
 					try {
-						observer.log(new LogMessage("Chargement et traitement des données...",-1, LogMessage.LOG));
+						observer.log(new LogMessage("Chargement et traitement des donnÃ©es...",-1, LogMessage.LOG));
 						macroMap = fileService.loadnParse(file);
-						observer.log(new LogMessage("Chargement et traitement des données terminé.",5, LogMessage.LOG));
+						observer.log(new LogMessage("Chargement et traitement des donnÃ©es terminÃ©.",5, LogMessage.LOG));
+						observer.macroListUpddated();
+
 					} catch (InvalidDataFile e) {
 						observer.log(new LogMessage(e.getMessage(),-1, LogMessage.ERREUR));
 						createToFile(new File(DATA_FILE));
@@ -78,7 +80,7 @@ public class Manager implements RecordServiceObserver{
 		if(!success) {
 			observer.saveCreationFailed();
 		}else {
-			observer.log(new LogMessage("Fichier de sauvegarde crée.",3, LogMessage.LOG));
+			observer.log(new LogMessage("Fichier de sauvegarde crÃ©e.",3, LogMessage.LOG));
 		}
 	}
 	
@@ -100,7 +102,7 @@ public class Manager implements RecordServiceObserver{
 	}
 	
 	/*
-	 * Evenement qui passe l'enregistrement effectué.
+	 * Evenement qui passe l'enregistrement effectuÃ©.
 	 * 
 	 * */
 	
