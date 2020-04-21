@@ -5,7 +5,7 @@ public class LogMessage {
 	public static final int LOG = 0;
 	public static final int WARNING = 1;
 	public static final int ERREUR = 2;
-	public static final int ERREUR_CRITIQUE = 2;
+	public static final int ERREUR_CRITIQUE = 3;
 	
 	private String message;
 	private int duration;
