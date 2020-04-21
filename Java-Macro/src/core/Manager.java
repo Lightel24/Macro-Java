@@ -56,9 +56,9 @@ public class Manager implements RecordServiceObserver{
 				@Override
 				public void run() {
 					try {
-						observer.log(new LogMessage("Chargement et traitement des données...",-1, LogMessage.LOG));
+						observer.log(new LogMessage("Chargement et traitement des donn\u00e9es...",-1, LogMessage.LOG));
 						macroMap = fileService.loadnParse(file);
-						observer.log(new LogMessage("Chargement et traitement des données terminé.",5, LogMessage.LOG));
+						observer.log(new LogMessage("Chargement et traitement des donn\u00e9es termin\u00e9.",5, LogMessage.LOG));
 						observer.macroListUpddated();
 					} catch (InvalidDataFile e) {
 						observer.log(new LogMessage(e.getMessage(),-1, LogMessage.ERREUR));
@@ -79,7 +79,7 @@ public class Manager implements RecordServiceObserver{
 		if(!success) {
 			observer.saveCreationFailed();
 		}else {
-			observer.log(new LogMessage("Fichier de sauvegarde crée.",3, LogMessage.LOG));
+			observer.log(new LogMessage("Fichier de sauvegarde cr\u00e9e.",3, LogMessage.LOG));
 		}
 	}
 	

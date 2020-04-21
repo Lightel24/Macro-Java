@@ -180,8 +180,9 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		
 		list.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent arg0) {
-				//On récupère la liste des actions de la macro selectionnée
-				refreshActionList();	//On met à jour l'affichage
+				if(arg0.getValueIsAdjusting()) {
+					refreshActionList();	//On met à jour l'affichage					
+				}
 			}
 		});
 		
@@ -272,6 +273,7 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		startLogMessageService();
 		manager = manager2;
 		manager.setObserver(this);
+		list.setModel(listModel);
 	}
 	
 	/*
@@ -279,7 +281,6 @@ public class MacroGui extends JFrame implements ManagerObserver{
 	 * */
 	public void refreshActionList() {
 		Liste.removeAll();
-		String d = (String) list.getSelectedValue();
 		Macro mac = manager.getMacroByName((String) list.getSelectedValue()); 
 		if(mac!=null) {
 			ArrayList<Action> actionlist = mac.getListe();
@@ -287,9 +288,9 @@ public class MacroGui extends JFrame implements ManagerObserver{
 				Action cu = actionlist.get(i);
 				Liste.add(new Item(i, cu.getType(), ""+ i));
 			}
-			Liste.revalidate();
-			Liste.repaint();
 		}
+		Liste.revalidate();
+		Liste.repaint();
 	}
 	
 	public void shutdown() {
@@ -420,6 +421,9 @@ public class MacroGui extends JFrame implements ManagerObserver{
 	@Override
 	public void macroListUpddated() {
 		macroNames = manager.getMacroNames();
+		for(String name : macroNames) {
+			listModel.addElement(name);
+		}
 		refreshActionList();
 	}
 }

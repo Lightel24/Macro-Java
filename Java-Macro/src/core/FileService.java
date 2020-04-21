@@ -78,7 +78,8 @@ public class FileService {
 					
 					NamedNodeMap att1 = t.getAttributes();
 					String nom = att1.getNamedItem("name").getNodeValue();	
-																			//Maintenant on traite les actions.
+					System.out.println(nom);
+														//Maintenant on traite les actions.
 					NodeList actionNodes = t.getChildNodes();
 					ArrayList<Action> actionsList = new ArrayList<Action>();
 
