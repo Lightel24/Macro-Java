@@ -76,14 +76,10 @@ public class MacroGui extends JFrame implements ManagerObserver{
 	
 	private Logger logger = LoggerFactory.getLogger(MacroGui.class);
 	private Manager manager;
-	private Stack<LogMessage> logStack = new Stack<LogMessage>();
+	private ArrayList<LogMessage> logStack = new ArrayList<LogMessage>();
 	private Thread logStackThread;
 	protected boolean running=false;
 	private String[] macroNames;
-	
-	public static void main(String[] args) {
-		new MacroGui(new Manager()).setVisible(true);
-	}
 	
 	/**
 	 * Create the frame.
@@ -292,6 +288,7 @@ public class MacroGui extends JFrame implements ManagerObserver{
 				Liste.add(new Item(i, cu.getType(), ""+ i));
 			}
 			Liste.revalidate();
+			Liste.repaint();
 		}
 	}
 	
@@ -306,7 +303,7 @@ public class MacroGui extends JFrame implements ManagerObserver{
 	 * Ajoute un message sur le haut de la pile de messages a afficher
 	 * */
 	public void pushLogMessage(LogMessage message) {
-		logStack.push(message);
+		logStack.add(message);
 	}
 	
 	/*
@@ -323,30 +320,31 @@ public class MacroGui extends JFrame implements ManagerObserver{
 	//Thread associé.
 	class LogMessageThread extends Thread{
 		private static final int WAIT = 200;
-		private int sleep = 0;	//(s)
 		private int counter = 0; //(ms)
 		private LogMessage current;
 		public LogMessageThread(String string) {
 			super(string);
 		}
+		/*
+		 * Logique des logs:
+		 * _ Chaque log a un niveau de sévérité et un temps d'affichage 
+		 * _ Lorsque un message de severité supérieure est posté, le message affiché est replacé par celui-ci
+		 * _ Si plusieurs messages on la meme sévéritée dans la pile le message posté en premier est affiché.
+		 * _ Un message de durée négative est considéré persistant: Il ne sera remplacé que lorsque un message de severite >= est trouvé.
+		 */
+		
 		@Override
-		public void run() {//TODO
+		public void run() {
 			while(running) {
-				if(current == null) {
-					try {
-						current = logStack.pop();
-						init();
-						lblLogOp.setText("Log : "+current.getMessage());
-						sleep = current.getDuration();
-						process();
-					}catch(EmptyStackException ex) {
-						if(sleep>=0) {
-							lblLogOp.setText("Log : ");
-						}
-					}
+				boolean success = trouverMessage();
+				if(success) {
+					afficher(current.getMessage());
 				}else {
-					process();
+					if(current==null) {
+						afficher(" idle");
+					}
 				}
+				decompte();
 				try {
 					Thread.sleep(WAIT);
 				} catch (InterruptedException e) {
@@ -354,17 +352,50 @@ public class MacroGui extends JFrame implements ManagerObserver{
 				}
 			}
 		}
-		private void init() {
-			sleep = 0;
-			counter = 0; //(ms)
-		}
 		
-		private void process() {
-			if(counter>=sleep*1000) {
-				current = null;
+		
+		private void afficher(String texte) {
+			lblLogOp.setText("Log :" + texte);
+		}
+
+		/*
+		 * Retourne si oui ou non un message a été trouvé.
+		 */
+		private boolean trouverMessage() {
+			if(logStack.size()>0) {		//Si il y a un message dans la pile
+				LogMessage sup = logStack.get(0);
+				for(LogMessage messages: logStack) {	//On prend le message le plus severe de la pile
+					if(messages.getLevel()>sup.getLevel()) {
+						sup = messages;
+					}
+				}
+				if(current!=null) {		//Si on a un message d'affiché
+					if(current.getDuration()<0) { //Si ce message est persistant on le remplace immédiatement
+						current = sup;
+						logStack.remove(sup);
+					}else if(sup.getLevel()>current.getLevel()) {	//Si le message actuel n'est pas persistant et que le message trouvé est plus severe que lui on le remplace
+							current = sup;
+							logStack.remove(sup);
+						}
+				}else {		//Si on a pas de messages d'affichés on l'affiche directement
+					current = sup;
+					logStack.remove(sup);
+				}
+				return true;
+			}else {
+				return false;
 			}
-			if(sleep>=0) {
-				counter +=WAIT;
+		}
+
+		private void decompte() {
+			if(current!=null && current.getDuration()>0 ) {
+				if(counter>current.getDuration()*1000) {
+					logStack.remove(current);
+					current = null;
+					counter=0;
+				}else {
+					counter += WAIT ;									
+				}
 			}
 		}
 	}

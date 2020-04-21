@@ -28,19 +28,20 @@ public class Manager implements RecordServiceObserver{
 	
 	public void startRecording(String macroName) {
 		try {
-			observer.log(new LogMessage("Début de l'enregistrement.",5));
+			observer.log(new LogMessage("Début de l'enregistrement.",-1, LogMessage.LOG));
 			recordService.startRecording();
 			this.macroName = macroName;
 		} catch (ObserverNotSetException e) {
-			observer.log(new LogMessage("L'opération a échoué veuillez réessayer.",5));
+			observer.log(new LogMessage("L'opération a échoué veuillez réessayer.",5, LogMessage.ERREUR));
 			recordService.setObserver(this);
 			e.printStackTrace();
 		} catch (ServiceNotReadyException e) {
-			observer.log(new LogMessage(e.getMessage(),10));
+			observer.log(new LogMessage(e.getMessage(),10, LogMessage.ERREUR));
 		}
 	}
 	
 	public void stopRecording() {
+		observer.log(new LogMessage("Fin de l'enregistrement.",5, LogMessage.LOG));
 		recordService.stopRecording();
 		macroName = "";
 	}
@@ -55,12 +56,11 @@ public class Manager implements RecordServiceObserver{
 				@Override
 				public void run() {
 					try {
-						observer.log(new LogMessage("Chargement et traitement des données...",5));
+						observer.log(new LogMessage("Chargement et traitement des données...",-1, LogMessage.LOG));
 						macroMap = fileService.loadnParse(file);
-						observer.log(new LogMessage("Chargement et traitement des données terminé.",5));
+						observer.log(new LogMessage("Chargement et traitement des données terminé.",5, LogMessage.LOG));
 					} catch (InvalidDataFile e) {
-						observer.log(new LogMessage("",1));
-						observer.log(new LogMessage(e.getMessage(),-1));
+						observer.log(new LogMessage(e.getMessage(),-1, LogMessage.ERREUR));
 						createToFile(new File(DATA_FILE));
 						e.printStackTrace();
 					}
@@ -68,7 +68,7 @@ public class Manager implements RecordServiceObserver{
 			};
 			IOThread.start();
 		}else {
-			observer.log(new LogMessage("Impossible d'acceder au fichier de sauvegarde pour l'instant.",5));
+			observer.log(new LogMessage("Impossible d'acceder au fichier de sauvegarde pour l'instant.",5, LogMessage.ERREUR));
 		}
 		
 	}
@@ -78,7 +78,7 @@ public class Manager implements RecordServiceObserver{
 		if(!success) {
 			observer.saveCreationFailed();
 		}else {
-			observer.log(new LogMessage("Fichier de sauvegarde crée.",0));
+			observer.log(new LogMessage("Fichier de sauvegarde crée.",3, LogMessage.LOG));
 		}
 	}
 	
