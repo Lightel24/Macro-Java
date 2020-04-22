@@ -26,6 +26,7 @@ import core.Action;
 import core.Macro;
 import core.Manager;
 import core.ManagerObserver;
+import core.RecordService;
 import fr.lightel24.gitupdater.GitUpdater;
 
 import javax.swing.JButton;
@@ -64,11 +65,14 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JProgressBar;
 import javax.swing.JTree;
+import java.awt.event.InputMethodListener;
+import java.awt.event.InputMethodEvent;
 
 public class MacroGui extends JFrame implements ManagerObserver{
 
 	private JPanel contentPane;
 	private JPanel Liste = new JPanel();
+	private JLabel freqLabel = new JLabel();
 	private DefaultListModel<String> listModel = new DefaultListModel<String>();
 	private JList list = new JList(listModel);
 	private JLabel lblLogOp = new JLabel("Log : ");
@@ -104,23 +108,37 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		panel_5.add(lblFrquenceDenregistrementsouris);
 		
 		JSlider slider = new JSlider();
+		slider.addChangeListener(changeEvent -> {
+            JSlider s = (JSlider) changeEvent.getSource();
+            freqLabel.setText(""+s.getValue());
+            if(manager!=null) {
+                manager.setMouseFrequency(s.getValue());
+            }
+        });
 		slider.setMinorTickSpacing(1);
 		slider.setSnapToTicks(true);
-		slider.setMaximum(500);
+		slider.setMaximum(100);
 		slider.setMinimum(1);
+		slider.setValue(RecordService.DEFAULT_MOUSE_FREQUENCY);
 		mnOptions.add(slider);
 		
 		JPanel panel_4 = new JPanel();
 		mnOptions.add(panel_4);
 		panel_4.setLayout(new BoxLayout(panel_4, BoxLayout.X_AXIS));
 		
-		JLabel label = new JLabel("1");
+		JLabel label = new JLabel(""+slider.getMinimum());
 		panel_4.add(label);
 		
-		Component horizontalStrut = Box.createHorizontalStrut(200);
-		panel_4.add(horizontalStrut);
+		Component horizontalGlue = Box.createHorizontalGlue();
+		panel_4.add(horizontalGlue);
 		
-		JLabel label_1 = new JLabel("500");
+		freqLabel.setText(""+slider.getValue());
+		panel_4.add(freqLabel);
+		
+		Component horizontalGlue_1 = Box.createHorizontalGlue();
+		panel_4.add(horizontalGlue_1);
+		
+		JLabel label_1 = new JLabel(""+slider.getMaximum());
 		panel_4.add(label_1);
 		
 		JSeparator separator = new JSeparator();
@@ -239,13 +257,30 @@ public class MacroGui extends JFrame implements ManagerObserver{
 			public void actionPerformed(ActionEvent arg0) {
 				String selectedMacro = (String) list.getSelectedValue();
 				if(selectedMacro != null) {
-					manager.startRecording(selectedMacro);
+					Macro mac = manager.getMacroByName(selectedMacro);
+					if(mac!=null) {
+						if(mac.getListe().size()<1) {
+							manager.startRecording(selectedMacro);						
+						}else {
+					  		int rep = JOptionPane.showConfirmDialog(MacroGui.this,"Cette macro contient des données, enregistrement la remplacera. Continuer?", "Attention!",JOptionPane.YES_NO_OPTION);
+					  		if(rep==JOptionPane.YES_OPTION) {
+								manager.startRecording(selectedMacro);						
+					  		}
+						}
+					}
+				}else {
+					log(new LogMessage("Selectionnez une macro pour enregistrer",2,LogMessage.WARNING));
 				}
 			}
 		});
 		btnEnregistrer.setForeground(Color.WHITE);
 		btnEnregistrer.setBackground(Color.LIGHT_GRAY);
 		panel_2.add(btnEnregistrer);
+		
+		JButton btnNewButton = new JButton("Executer");
+		btnNewButton.setBackground(Color.LIGHT_GRAY);
+		btnNewButton.setForeground(Color.WHITE);
+		panel_2.add(btnNewButton);
 		
 		JPanel panel_1 = new JPanel();
 		splitPane.setRightComponent(panel_1);
@@ -291,6 +326,21 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		}
 		Liste.revalidate();
 		Liste.repaint();
+	}
+	
+	/*
+	 * Reforme la liste des macros et met à jour l'affichage.
+	 */
+	public void refreshMacroList() {
+		macroNames = manager.getMacroNames();
+		String selection = (String) list.getSelectedValue();
+		listModel.clear();
+		for(String name : macroNames) {
+			listModel.addElement(name);
+			if(selection != null && selection.contentEquals(name)) {
+				list.setSelectedValue(selection, true);
+			}
+		}
 	}
 	
 	public void shutdown() {
@@ -419,11 +469,8 @@ public class MacroGui extends JFrame implements ManagerObserver{
 	}
 
 	@Override
-	public void macroListUpddated() {
-		macroNames = manager.getMacroNames();
-		for(String name : macroNames) {
-			listModel.addElement(name);
-		}
+	public void macroListUpddated() {			
+		refreshMacroList();
 		refreshActionList();
 	}
 }

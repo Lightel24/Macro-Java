@@ -26,13 +26,18 @@ public class Manager implements RecordServiceObserver{
 		removeObserver(); //Eviter un nullpointer
 	}
 	
+
+	public void setMouseFrequency(int value) {
+		recordService.setMouseFrequency(value);
+	}
+	
 	public void startRecording(String macroName) {
 		try {
-			observer.log(new LogMessage("Début de l'enregistrement.",-1, LogMessage.LOG));
+			observer.log(new LogMessage("D\u00e9but de l'enregistrement.",-1, LogMessage.LOG));
 			recordService.startRecording();
 			this.macroName = macroName;
 		} catch (ObserverNotSetException e) {
-			observer.log(new LogMessage("L'opération a échoué veuillez réessayer.",5, LogMessage.ERREUR));
+			observer.log(new LogMessage("L'opération a \u00e9chou\u00e9 veuillez r\u00e9essayer.",5, LogMessage.ERREUR));
 			recordService.setObserver(this);
 			e.printStackTrace();
 		} catch (ServiceNotReadyException e) {
@@ -44,6 +49,10 @@ public class Manager implements RecordServiceObserver{
 		observer.log(new LogMessage("Fin de l'enregistrement.",5, LogMessage.LOG));
 		recordService.stopRecording();
 		macroName = "";
+	}
+	
+	public boolean isRecording() {
+		return recordService.isRecording();
 	}
 	
 	public void benchmark() {
@@ -101,7 +110,7 @@ public class Manager implements RecordServiceObserver{
 	}
 	
 	/*
-	 * Evenement qui passe l'enregistrement effectué.
+	 * Evenement qui passe l'enregistrement effectu�.
 	 * 
 	 * */
 	

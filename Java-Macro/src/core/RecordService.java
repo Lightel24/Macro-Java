@@ -73,7 +73,7 @@ public class RecordService extends Service implements  NativeKeyListener, Native
 	
 	public void stopRecording() {
 		if(isRunning) {
-			observer.receiveRecordResult(enregistrement);
+			observer.receiveRecordResult((ArrayList<Action>) enregistrement.clone());
 			reset();
 			try {
 				GlobalScreen.unregisterNativeHook();
@@ -161,6 +161,10 @@ public class RecordService extends Service implements  NativeKeyListener, Native
 	
 	public void removeObserver() {
 		this.observer = null;
+	}
+
+	public boolean isRecording() {
+		return isRunning;
 	}
 	
 }
