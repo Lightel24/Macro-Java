@@ -67,14 +67,21 @@ import javax.swing.JProgressBar;
 import javax.swing.JTree;
 import java.awt.event.InputMethodListener;
 import java.awt.event.InputMethodEvent;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFormattedTextField;
+
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
+import javax.swing.SpinnerNumberModel;
 
 public class MacroGui extends JFrame implements ManagerObserver{
 
 	private JPanel contentPane;
 	private JPanel Liste = new JPanel();
+	private JLabel lblVitesse = new JLabel();
 	private JLabel freqLabel = new JLabel();
 	private DefaultListModel<String> listModel = new DefaultListModel<String>();
-	private JList list = new JList(listModel);
+	private JList<String> list = new JList<String>(listModel);
 	private JLabel lblLogOp = new JLabel("Log : ");
 	
 	
@@ -90,6 +97,8 @@ public class MacroGui extends JFrame implements ManagerObserver{
 	 * @param manager2 
 	 */
 	public MacroGui(Manager manager2) {
+		manager = manager2;
+		manager.setObserver(this);
 		setTitle("Macros");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
@@ -153,6 +162,73 @@ public class MacroGui extends JFrame implements ManagerObserver{
 				}
 			}
 		});
+		
+		JPanel panel_6 = new JPanel();
+		mnOptions.add(panel_6);
+		
+		JLabel lblNewLabel_1 = new JLabel("Enregistrer:");
+		panel_6.add(lblNewLabel_1);
+		
+		JCheckBoxMenuItem chckbxmntmSouris = new JCheckBoxMenuItem("Souris");
+		chckbxmntmSouris.setSelected(manager.isMouseEnabled());
+		chckbxmntmSouris.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent arg0) {
+	               manager.setMouseRecordingState(chckbxmntmSouris.isSelected());
+			}
+		});
+		mnOptions.add(chckbxmntmSouris);
+		
+		JCheckBoxMenuItem chckbxmntmClavier = new JCheckBoxMenuItem("Clavier");
+		chckbxmntmClavier.setSelected(manager.isKeyboardEnabled());
+		chckbxmntmClavier.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent arg0) {
+	               manager.setKeyboardRecordingState(chckbxmntmClavier.isSelected());
+			}
+		});
+		mnOptions.add(chckbxmntmClavier);
+		
+		JSeparator separator_1 = new JSeparator();
+		mnOptions.add(separator_1);
+		
+		JPanel panel_7 = new JPanel();
+		mnOptions.add(panel_7);
+		
+		JLabel lblLecture = new JLabel("Vitesse de playback");
+		panel_7.add(lblLecture);
+		
+		JSeparator separator_2 = new JSeparator();
+		mnOptions.add(separator_2);
+		
+		JSlider vitesse = new JSlider();
+		vitesse.addChangeListener(changeEvent -> {
+            JSlider s = (JSlider) changeEvent.getSource();
+            lblVitesse.setText(s.getValue()+"%");
+            manager.setPlaybackSpeed(s.getValue());
+        });
+		vitesse.setMajorTickSpacing(10);
+		vitesse.setValue(100);
+		vitesse.setMinimum(10);
+		vitesse.setMaximum(500);
+		mnOptions.add(vitesse);
+		
+		JPanel panel_8 = new JPanel();
+		mnOptions.add(panel_8);
+		panel_8.setLayout(new BoxLayout(panel_8, BoxLayout.X_AXIS));
+		
+		JLabel lblNewLabel_2 = new JLabel("10%");
+		panel_8.add(lblNewLabel_2);
+		
+		Component horizontalGlue_2 = Box.createHorizontalGlue();
+		panel_8.add(horizontalGlue_2);
+		
+		lblVitesse.setText(manager.getPlaybackSpeed()+"%");
+		panel_8.add(lblVitesse);
+		
+		Component horizontalGlue_3 = Box.createHorizontalGlue();
+		panel_8.add(horizontalGlue_3);
+		
+		JLabel lblNewLabel_4 = new JLabel("500%");
+		panel_8.add(lblNewLabel_4);
 		mnOptions.add(mntmBenchmark);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -227,7 +303,13 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		JButton button_1 = new JButton("-");
 		button_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				manager.stopRecording();
+				String selection = (String) list.getSelectedValue();
+				if(selection!=null) {
+					int rep = JOptionPane.showConfirmDialog(MacroGui.this, "Etes vous sur de vouloir supprimer: " + selection + " ?", "Vraiment?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					if(rep == JOptionPane.YES_OPTION) {
+						manager.delete(selection);
+					}
+				}
 			}
 		});
 		button_1.setFont(new Font("Tahoma", Font.PLAIN, 13));
@@ -239,7 +321,7 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				String rep = JOptionPane.showInputDialog(MacroGui.this, "Entrez le nom de la macro", "Entrez un nom", JOptionPane.OK_CANCEL_OPTION);
-				if(!rep.contentEquals("null")) {
+				if(rep!=null) {
 					if(!listModel.contains(rep)) {
 						listModel.addElement(rep);
 					}else {
@@ -267,6 +349,8 @@ public class MacroGui extends JFrame implements ManagerObserver{
 								manager.startRecording(selectedMacro);						
 					  		}
 						}
+					}else {
+						manager.startRecording(selectedMacro);						
 					}
 				}else {
 					log(new LogMessage("Selectionnez une macro pour enregistrer",2,LogMessage.WARNING));
@@ -277,10 +361,18 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		btnEnregistrer.setBackground(Color.LIGHT_GRAY);
 		panel_2.add(btnEnregistrer);
 		
-		JButton btnNewButton = new JButton("Executer");
-		btnNewButton.setBackground(Color.LIGHT_GRAY);
-		btnNewButton.setForeground(Color.WHITE);
-		panel_2.add(btnNewButton);
+		JButton btnExecuter = new JButton("Executer");
+		btnExecuter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				String selectedMacro = (String) list.getSelectedValue();
+				if(selectedMacro!=null) {
+					manager.startPlaying(selectedMacro);
+				}
+			}
+		});
+		btnExecuter.setBackground(Color.LIGHT_GRAY);
+		btnExecuter.setForeground(Color.WHITE);
+		panel_2.add(btnExecuter);
 		
 		JPanel panel_1 = new JPanel();
 		splitPane.setRightComponent(panel_1);
@@ -306,8 +398,6 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		
 		running = true;
 		startLogMessageService();
-		manager = manager2;
-		manager.setObserver(this);
 		list.setModel(listModel);
 	}
 	

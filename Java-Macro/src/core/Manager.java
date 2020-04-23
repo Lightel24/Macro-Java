@@ -14,14 +14,17 @@ public class Manager implements RecordServiceObserver{
 	private HashMap<String,Macro> macroMap = new HashMap<String,Macro>();
 	private FileService fileService;
 	private RecordService recordService;
+	private RobotService robotService;
 	private ManagerObserver observer;
 	private Thread IOThread;
+	private Thread PlayingThread;
 	private String macroName;
 	
 	public Manager(){
 		fileService = new FileService();
 		recordService = new RecordService();
 		recordService.setObserver(this);
+		robotService = new RobotService();
 		macroName = "";
 		removeObserver(); //Eviter un nullpointer
 	}
@@ -29,26 +32,50 @@ public class Manager implements RecordServiceObserver{
 
 	public void setMouseFrequency(int value) {
 		recordService.setMouseFrequency(value);
-	}
+	} 
 	
 	public void startRecording(String macroName) {
 		try {
-			observer.log(new LogMessage("D\u00e9but de l'enregistrement.",-1, LogMessage.LOG));
+			observer.log(new LogMessage("D\u00e9but de l'enregistrement. (Echap pour arreter)",-1, LogMessage.LOG));
 			recordService.startRecording();
 			this.macroName = macroName;
 		} catch (ObserverNotSetException e) {
-			observer.log(new LogMessage("L'opÃ©ration a \u00e9chou\u00e9 veuillez r\u00e9essayer.",5, LogMessage.ERREUR));
+			observer.log(new LogMessage("L'op\u00e9ration a \u00e9chou\u00e9 veuillez r\u00e9essayer.",5, LogMessage.ERREUR));
 			recordService.setObserver(this);
 			e.printStackTrace();
 		} catch (ServiceNotReadyException e) {
-			observer.log(new LogMessage(e.getMessage(),10, LogMessage.ERREUR));
+			observer.log(new LogMessage(e.getMessage(),5, LogMessage.ERREUR));
 		}
 	}
 	
 	public void stopRecording() {
-		observer.log(new LogMessage("Fin de l'enregistrement.",5, LogMessage.LOG));
 		recordService.stopRecording();
 		macroName = "";
+	}
+	
+	public void startPlaying(String macroName) {
+		Macro macro = macroMap.get(macroName);
+		if(macro!=null) {
+			if(PlayingThread == null || !PlayingThread.isAlive()) {
+				PlayingThread = new Thread("Playing-Thread") {
+					@Override
+					public void run() {
+						try {
+							observer.log(new LogMessage("Replay de la macro : "+macroName,-1, LogMessage.LOG));
+							robotService.exec(macro);
+							observer.log(new LogMessage("Opération terminee",2, LogMessage.LOG));
+						} catch (ServiceNotReadyException e) {
+							observer.log(new LogMessage(e.getMessage(),5, LogMessage.ERREUR));
+						}
+					}
+				};
+				PlayingThread.start();
+			}else {
+				observer.log(new LogMessage("Une macro est deja en cours d'execution!",5, LogMessage.ERREUR));
+			} 
+		}else {
+			observer.log(new LogMessage("[ERREUR] Aucune données associées à "+macroName,5,LogMessage.ERREUR));
+		}
 	}
 	
 	public boolean isRecording() {
@@ -79,7 +106,7 @@ public class Manager implements RecordServiceObserver{
 			IOThread.start();
 		}else {
 			observer.log(new LogMessage("Impossible d'acceder au fichier de sauvegarde pour l'instant.",5, LogMessage.ERREUR));
-		}
+		} 
 		
 	}
 	
@@ -118,6 +145,7 @@ public class Manager implements RecordServiceObserver{
 	public void receiveRecordResult(ArrayList<Action> enregistrement) {
 		macroMap.put(macroName, new Macro(enregistrement, macroName));
 		observer.macroListUpddated();
+		observer.log(new LogMessage("L'enregistrement est termin\u00E9",3, LogMessage.LOG));
 	}
 
 	public String[] getMacroNames() {
@@ -127,5 +155,39 @@ public class Manager implements RecordServiceObserver{
 	public Macro getMacroByName(String name) {
 		Macro mac = macroMap.get(name);
 		return mac;
+	}
+	/*
+	 * Supprime une macro et avertit l'observer
+	 */
+	public void delete(String selection) {
+		macroMap.remove(selection);
+		observer.macroListUpddated();
+	}
+
+
+	public void setMouseRecordingState(boolean bol) {
+		recordService.setMouse(bol);
+	}
+	
+	public void setKeyboardRecordingState(boolean bol) {
+		recordService.setKeyboard(bol);
+	}
+	
+	public boolean isKeyboardEnabled() {
+		return recordService.isKeyboardEnabled();
+	}
+
+	public boolean isMouseEnabled() {
+		return recordService.isMouseEnabled();
+	}
+
+
+	public void setPlaybackSpeed(int value) {
+		robotService.setPlaybackSpeed(value);
+		
+	}
+
+	public int getPlaybackSpeed() {
+		return robotService.getPlaybackSpeed();
 	}
 }

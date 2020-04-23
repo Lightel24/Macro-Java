@@ -94,14 +94,28 @@ public class FileService {
 								
 								if(type.contains("KEY")) { //Donnees du format: "type"="KEY_PRESSED"	"timestamp"="230"		"key"="130"
 									String data = actionNode.getTextContent();
-									long timestamp = Long.parseLong(getValue("timestamp",data));
 									type = getValue("type",data);
-									int key = Integer.parseInt(getValue("key",data));
+									long timestamp = 0;
+									int key = 0;
+									int rawCode = 0;
 									
-									actionsList.add(new KeyAction(timestamp, type, key));
+									try {
+										 timestamp = Long.parseLong(getValue("timestamp",data));
+										 key = Integer.parseInt(getValue("key",data));
+										 rawCode = Integer.parseInt(getValue("rawCode",data));
+									}catch(java.lang.NumberFormatException ex) {
+										System.err.println("Le fichier contient des erreurs! Les valeurs sont mises a 0.");
+									}
+									
+									actionsList.add(new KeyAction(timestamp, type, key,rawCode));
 								}else if(type.contains("MOUSE")) {	//Donnees du format: "type"="MOUSE_MOVED"	"timestamp"="230"		"loc"="220,150"
 									String data = actionNode.getTextContent();
 									long timestamp = Long.parseLong(getValue("timestamp",data));
+									try {
+										 timestamp = Long.parseLong(getValue("timestamp",data));
+									}catch(java.lang.NumberFormatException ex) {
+										System.err.println("Le fichier contient des erreurs! Les valeurs sont mises a 0.");
+									}
 									type = getValue("type",data);
 									String[] locVal = getValue("loc",data).split(",");
 									
@@ -137,73 +151,6 @@ public class FileService {
 		}
 		return value;
 	}
-
-	/*
-	 * https://openclassrooms.com/fr/courses/2654406-java-et-le-xml/2685791-rappels-sur-le-xml
-	 * */
-	 public static String description(Node n, String tab){
-	      String str = new String();
-	      //Nous nous assurons que le nœud passé en paramètre est une instance d'Element
-	      //juste au cas où il s'agisse d'un texte ou d'un espace, etc.
-	      if(n instanceof Element){
-	         
-	         //Nous sommes donc bien sur un élément de notre document
-	         //Nous castons l'objet de type Node en type Element
-	         Element element = (Element)n;
-	         
-	         //Nous pouvons récupérer le nom du nœud actuellement parcouru 
-	         //grâce à cette méthode, nous ouvrons donc notre balise
-	         str += "<" + n.getNodeName();
-	         
-	         //nous contrôlons la liste des attributs présents
-	         if(n.getAttributes() != null && n.getAttributes().getLength() > 0){
-	            
-	            //nous pouvons récupérer la liste des attributs d'un élément
-	            NamedNodeMap att = n.getAttributes();
-	            int nbAtt = att.getLength();
-	            
-	            //nous parcourons tous les nœuds pour les afficher
-	            for(int j = 0; j < nbAtt; j++){
-	               Node noeud = att.item(j);
-	               //On récupère le nom de l'attribut et sa valeur grâce à ces deux méthodes
-	               str += " " + noeud.getNodeName() + "=\"" + noeud.getNodeValue() + "\" ";
-	            }
-	         }
-	         
-	         //nous refermons notre balise car nous avons traité les différents attributs
-	         str += ">";
-	         
-	         //La méthode getChildNodes retournant le contenu du nœud + les nœuds enfants
-	         //Nous récupérons le contenu texte uniquement lorsqu'il n'y a que du texte, donc un seul enfant
-	         if(n.getChildNodes().getLength() == 1)
-	              str += n.getTextContent();
-	         
-	         //Nous allons maintenant traiter les nœuds enfants du nœud en cours de traitement
-	         int nbChild = n.getChildNodes().getLength();
-	         //Nous récupérons la liste des nœuds enfants
-	         NodeList list = n.getChildNodes();
-	         String tab2 = tab + "\t";
-	         
-	         //nous parcourons la liste des nœuds
-	         for(int i = 0; i < nbChild; i++){
-	            Node n2 = list.item(i);
-	            
-	            //si le nœud enfant est un Element, nous le traitons
-	            if (n2 instanceof Element){
-	               //appel récursif à la méthode pour le traitement du nœud et de ses enfants 
-	               str += "\n " + tab2 + description(n2, tab2);
-	            }
-	         }
-	         
-	         //Nous fermons maintenant la balise
-	         if(n.getChildNodes().getLength() < 2)
-	            str += "</" + n.getNodeName() + ">";
-	         else
-	            str += "\n" + tab +"</" + n.getNodeName() + ">";
-	      }
-	      
-	      return str;
-	   }  
 
 	public boolean create(File file) {
 		
