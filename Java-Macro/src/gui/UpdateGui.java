@@ -55,8 +55,7 @@ public class UpdateGui extends JFrame{
 		this.getContentPane().add(Action, BorderLayout.SOUTH);
 		
 		btnSkip = new JButton("Skip");
-		btnSkip.setEnabled(false);
-		btnSkip.setToolTipText("Pas encore possible");
+		btnSkip.setEnabled(true);
 		btnSkip.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				dispose();
@@ -84,14 +83,5 @@ public class UpdateGui extends JFrame{
 		  		lblVrificationDeVersion.setText(string);
 		      }
 		    });
-	}
-	public void changeSkip(ActionListener action) {
-	    	btnSkip.setText("Arrière-plan");
-	    	btnSkip.setToolTipText("Arrière-plan");
-	    	btnSkip.setSize(btnSkip.getWidth()*2, btnSkip.getHeight());
-	    	btnSkip.setEnabled(true);
-			btnSkip.addActionListener(action);
-			btnSkip.revalidate();
-		
 	}
 }

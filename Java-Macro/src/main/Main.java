@@ -7,6 +7,11 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
+import java.io.IOException;
+
+import javax.swing.JOptionPane;
+
+import org.apache.http.client.ClientProtocolException;
 
 import core.Macro;
 import core.Manager;
@@ -34,6 +39,7 @@ public class Main implements UpdateGuiObserver{
 	
 	
 	private void checkVersion() {	//On peut se permettre de bloquer le main.
+		System.out.println(SEMVER);
 		update = new UpdateGui();
 		update.setVisible(true);
 		update.addWindowListener(new WindowListener() {
@@ -60,23 +66,20 @@ public class Main implements UpdateGuiObserver{
 		});
 		
 		GitUpdater up = new GitUpdater();
-		up.setRepo("apache", "airflow");
-		up.setVersionCheckMethod(GitUpdater.DIFFERENCE_CHECK_TAGNAME);
+		up.setRepo("Lightel24", "Macro-Java");
+		up.setVersionCheckMethod(GitUpdater.SEMVER_CHECK_TAGNAME);
 		
 		try {
 			if(up.isUpToDate(SEMVER)==GitUpdater.IS_NOT_UP_TO_DATE) {
 				update.setEnTete("Mise à jour en cours...");
-				update.changeSkip(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						update.dispose();
-					}
-				});
+				up.downloadAsset(up.getLatestRelease().getAssets()[0], new File("Macro.jar"));
+				JOptionPane.showMessageDialog(update, "Le programme a été mit a jour et doit être relancé.");
+				System.exit(0);
 			}
-		} catch (VersionCheckException e) {
+		} catch (VersionCheckException | IOException e) {
 			e.printStackTrace();
-			update.dispose();
 		}
+		update.dispose();
 	}
 
 

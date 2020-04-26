@@ -2,6 +2,7 @@ package core;
 
 import java.awt.Point;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +10,12 @@ import java.util.HashMap;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -24,6 +31,8 @@ import org.xml.sax.SAXException;
 
 
 public class FileService {
+	
+	public static final String parserVersion = "1.0.0" ;
 
 	public HashMap<String, Macro> loadnParse(File file) throws InvalidDataFile{
 		HashMap<String, Macro> macros = new HashMap<String, Macro>();
@@ -83,7 +92,7 @@ public class FileService {
 					NodeList actionNodes = t.getChildNodes();
 					ArrayList<Action> actionsList = new ArrayList<Action>();
 
-					for(int k =0;k<macrosNode.getLength();k++) {
+					for(int k =0;k<actionNodes.getLength();k++) {
 						Node actionNode = actionNodes.item(k);
 						if(actionNode instanceof Element) {
 							
@@ -137,6 +146,55 @@ public class FileService {
 				
 			}
 		}
+	}
+	
+	public void saveToFile(File file,HashMap<String,Macro> macros) {
+	    if (! file.exists() && file.getParentFile()!=null){
+	    	file.getParentFile().mkdir();
+	    	System.out.println("Le dossier a été crée");
+	    }
+		
+	    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		try {
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document xml = builder.newDocument();
+			
+			Element racine = xml.createElement("racine");
+			xml.appendChild(racine);
+			
+			Element config = xml.createElement("Config");
+			config.setAttribute("version", parserVersion);
+			racine.appendChild(config);
+			
+			for(Macro macro : macros.values()) {
+				Element macroNode = xml.createElement("Macro");
+				macroNode.setAttribute("name", macro.getName());
+				for(Action action : macro.getListe()) {
+					Element actionNode = xml.createElement("Action");
+					actionNode.setAttribute("type", action.getType());
+					actionNode.setTextContent(action.toString());
+					macroNode.appendChild(actionNode);
+				}
+				racine.appendChild(macroNode);
+			}
+			
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource domSource = new DOMSource(xml);
+            StreamResult streamResult = new StreamResult(file);
+            
+            transformer.transform(domSource, streamResult);
+            
+            System.out.println("Fichier XML cr\u00e9e. ");
+ 
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (TransformerConfigurationException e) {
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			e.printStackTrace();
+		}
+
 	}
 	
 	/*

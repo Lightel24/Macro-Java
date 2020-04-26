@@ -71,6 +71,8 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFormattedTextField;
 
 import java.awt.event.ItemListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.event.ItemEvent;
 import javax.swing.SpinnerNumberModel;
 
@@ -103,6 +105,25 @@ public class MacroGui extends JFrame implements ManagerObserver{
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
 		setBounds(100, 100, 442, 547);
+		addWindowListener(new WindowListener() {
+			@Override
+			public void windowActivated(WindowEvent arg0) {}
+			@Override
+			public void windowClosed(WindowEvent arg0) {}
+			@Override
+			public void windowClosing(WindowEvent arg0) {
+				manager.saveToFile(new File("data/data.xml"));
+			}
+			@Override
+			public void windowDeactivated(WindowEvent arg0) {}
+			@Override
+			public void windowDeiconified(WindowEvent arg0) {}
+			@Override
+			public void windowIconified(WindowEvent arg0) {}
+			@Override
+			public void windowOpened(WindowEvent arg0) {}
+			
+		});
 		
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
@@ -158,7 +179,7 @@ public class MacroGui extends JFrame implements ManagerObserver{
 			public void actionPerformed(ActionEvent arg0) {
 				int rep = JOptionPane.showConfirmDialog(MacroGui.this, "Le benchmark va trouver les paramètres optimaux pour votre configuration\nIl vous avertira de tout problème éventuel, vous devrez bouger votre souris et taper sur votre clavier\nLes actions seront ensuite repetées\nLe benchmark durera 10 secondes", "Message", JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
 				if(rep == JOptionPane.YES_OPTION) {
-					manager.benchmark();
+					manager.saveToFile(new File("data/data.xml"));
 				}
 			}
 		});

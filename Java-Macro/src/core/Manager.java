@@ -98,7 +98,6 @@ public class Manager implements RecordServiceObserver{
 						observer.macroListUpddated();
 					} catch (InvalidDataFile e) {
 						observer.log(new LogMessage(e.getMessage(),-1, LogMessage.ERREUR));
-						createToFile(new File(DATA_FILE));
 						e.printStackTrace();
 					}
 				}
@@ -110,12 +109,21 @@ public class Manager implements RecordServiceObserver{
 		
 	}
 	
-	public void createToFile(File file) {
-		boolean success = fileService.create(file);
-		if(!success) {
-			observer.saveCreationFailed();
-		}else {
-			observer.log(new LogMessage("Fichier de sauvegarde cr\u00e9e.",3, LogMessage.LOG));
+	public void saveToFile(File file) {
+		if(file!=null) {
+			if(IOThread == null || !IOThread.isAlive()) {
+				IOThread = new Thread("Playing-Thread") {
+					@Override
+					public void run() {
+						observer.log(new LogMessage("Enregistrement des données.",-1, LogMessage.LOG));
+						fileService.saveToFile(file, macroMap);
+						observer.log(new LogMessage("Opération terminee",2, LogMessage.LOG));
+					}
+				};
+				IOThread.start();
+			}else {
+				observer.log(new LogMessage("Une opération est déjà en cours!",5, LogMessage.ERREUR));
+			} 
 		}
 	}
 	
